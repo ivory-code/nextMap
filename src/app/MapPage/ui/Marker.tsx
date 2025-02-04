@@ -1,5 +1,15 @@
+'use client'
+
 import {LatLngExpression} from 'leaflet'
-import {Marker, Popup} from 'react-leaflet'
+import dynamic from 'next/dynamic'
+
+// 🚀 SSR 비활성화 (클라이언트에서만 로드)
+const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), {
+  ssr: false,
+})
+const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), {
+  ssr: false,
+})
 
 const MapMarker = ({position}: {position: LatLngExpression}) => {
   return (
