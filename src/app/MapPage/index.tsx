@@ -1,4 +1,8 @@
-import Map from '@/app/MapPage/ui/Map'
+'use client'
+
+import dynamic from 'next/dynamic'
+
+const Map = dynamic(import('@/app/MapPage/ui/Map'), {ssr: false})
 
 const MapPage = () => {
   return (
