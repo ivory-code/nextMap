@@ -1,5 +1,5 @@
-import MainPage from '@/app/MainPage'
+import MapPage from '@/app/MapPage'
 
 export default function Home() {
-  return <MainPage />
+  return <MapPage />
 }
