@@ -9,7 +9,7 @@ const categories = [
   {icon: '🏯', label: '한옥'},
   {icon: '🌊', label: '호수 근처'},
   {icon: '❄️', label: '북극'},
-  {icon: '🏖', label: '멋진 수'},
+  {icon: '🏖', label: '멋진 수영장'},
 ]
 
 const Header = () => {
