@@ -1,3 +1,5 @@
+"use client";
+
 import { LatLngExpression } from "leaflet";
 import { useEffect, useState } from "react";
 
@@ -5,6 +7,8 @@ const useLiveLocation = () => {
   const [position, setPosition] = useState<LatLngExpression | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     if (navigator.geolocation) {
       const watchId = navigator.geolocation.watchPosition(
         (pos) => {
