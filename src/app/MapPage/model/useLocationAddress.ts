@@ -14,8 +14,9 @@ const useLocationAddress = (lat: number | null, lon: number | null) => {
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
         );
         const data = await response.json();
+
         if (data && data.display_name) {
-          setAddress(data.display_name);
+          setAddress(`${data.address.city} ${data.address.borough} ${data.address.suburb}`);
         }
       } catch (error) {
         console.error("주소 변환 실패:", error);
