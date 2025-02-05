@@ -1,5 +1,6 @@
 'use client'
 
+import LocationInfoBox from '@/app/MapPage/ui/LocationInfoBox'
 import {LatLngExpression} from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'
@@ -36,7 +37,7 @@ const Map = () => {
   const position = useLiveLocation()
 
   return (
-    <div className="relative w-full h-screen">
+    <div className="relative w-full h-screen overflow-visible">
       <MapContainer
         center={position || SEOUL}
         zoom={15}
@@ -52,6 +53,9 @@ const Map = () => {
         {/* 마커는 고정된 상태에서 지도만 이동 */}
         {position && <MapMarker position={position} />}
       </MapContainer>
+
+      {/* 현재 위치 주소 표시 UI */}
+      {position && <LocationInfoBox lat={position[0]} lon={position[1]} />}
     </div>
   )
 }
