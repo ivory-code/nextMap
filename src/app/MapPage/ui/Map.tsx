@@ -1,12 +1,11 @@
 'use client'
 
+import useLiveLocation from '@/app/MapPage/model/useLiveLocation'
+import AdjustMapCenter from '@/app/MapPage/ui/AdjustMapCenter'
 import LocationInfoBox from '@/app/MapPage/ui/LocationInfoBox'
 import {LatLngExpression} from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'
-import {useEffect} from 'react'
-import {useMap} from 'react-leaflet'
-import useLiveLocation from '../model/useLiveLocation'
 
 // 🚀 SSR 비활성화 (클라이언트에서만 로드)
 const MapContainer = dynamic(
@@ -20,18 +19,6 @@ const TileLayer = dynamic(
 const MapMarker = dynamic(() => import('@/app/MapPage/ui/Marker'), {ssr: false})
 
 const SEOUL: LatLngExpression = [37.5665, 126.978]
-
-const CenterMapToUser = ({position}: {position: LatLngExpression | null}) => {
-  const map = useMap()
-
-  useEffect(() => {
-    if (position) {
-      map.setView(position, map.getZoom()) // ✅ 유저 위치로 지도 이동
-    }
-  }, [position, map])
-
-  return null
-}
 
 const Map = () => {
   const position = useLiveLocation()
@@ -48,7 +35,9 @@ const Map = () => {
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {/* 지도 중심을 유저 위치로 이동 */}
-        <CenterMapToUser position={position} />
+        <AdjustMapCenter position={position} />
+
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {/* 마커는 고정된 상태에서 지도만 이동 */}
         {position && <MapMarker position={position} />}
