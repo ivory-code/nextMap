@@ -1,7 +1,6 @@
 'use client'
 
 import useLiveLocation from '@/app/GoogleMap/model/useLiveLocation'
-import AdjustMapCenter from '@/app/GoogleMap/ui/AdjustMapCenter'
 import GoogleMapMarker from '@/app/GoogleMap/ui/GoogleMapMarker'
 import LocationInfoBox from '@/app/GoogleMap/ui/LocationInfoBox'
 import {GoogleMap, LoadScript} from '@react-google-maps/api'
@@ -23,9 +22,6 @@ const GoogleMapComponent = () => {
           zoomControl: true, // 줌 컨트롤 활성화
           fullscreenControl: false,
         }}>
-        {/* 지도 중심 조정 */}
-        <AdjustMapCenter position={position} />
-
         {/* 현재 위치 마커 표시 */}
         {position && <GoogleMapMarker position={position} />}
       </GoogleMap>
