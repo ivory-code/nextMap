@@ -13,7 +13,7 @@ const GoogleMapComponent = () => {
   const position = useLiveLocation() // 사용자의 실시간 위치 가져오기
 
   return (
-    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+    <LoadScript googleMapsApiKey={process.env.PUBLIC_GOOGLE_MAPS_API_KEY!}>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={position ? {lat: position[0], lng: position[1]} : defaultCenter}

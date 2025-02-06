@@ -11,7 +11,7 @@ const useLocationAddress = (lat: number | null, lon: number | null) => {
     const fetchAddress = async () => {
       try {
         const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${process.env.PUBLIC_GOOGLE_MAPS_API_KEY}`
         );
         const data = await response.json();
 

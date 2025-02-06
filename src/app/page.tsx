@@ -1,5 +1,5 @@
-import MapPage from '@/app/MapPage'
+import GoogleMapComponent from '@/app/GoogleMap/ui/GoogleMap'
 
 export default function Home() {
-  return <MapPage />
+  return <GoogleMapComponent />
 }
