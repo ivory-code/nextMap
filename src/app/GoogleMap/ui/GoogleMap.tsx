@@ -2,7 +2,7 @@
 
 import LocationInfoBox from '@/app/GoogleMap/ui/LocationInfoBox'
 import {GoogleMap, LoadScript} from '@react-google-maps/api'
-import {useCallback, useRef, useState} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 
 const containerStyle = {width: '100%', height: '100vh'}
 const defaultCenter = {lat: 37.5665, lng: 126.978} // 서울 좌표
@@ -10,16 +10,6 @@ const defaultCenter = {lat: 37.5665, lng: 126.978} // 서울 좌표
 const GoogleMapComponent = () => {
   const mapRef = useRef<google.maps.Map | null>(null) // 지도 객체 참조
   const [center, setCenter] = useState(defaultCenter) // 현재 지도 중심 좌표
-
-  // 지도를 움직일 때 실행 (유저가 지도 이동 중일 때)
-  const handleCenterChanged = useCallback(() => {
-    if (mapRef.current) {
-      const newCenter = mapRef.current.getCenter()
-      if (newCenter) {
-        setCenter({lat: newCenter.lat(), lng: newCenter.lng()})
-      }
-    }
-  }, [])
 
   // 현재 위치로 이동하는 버튼 핸들러
   const handleGoToCurrentLocation = () => {
@@ -35,8 +25,32 @@ const GoogleMapComponent = () => {
     }
   }
 
-  const handleMapLoad = useCallback((map: google.maps.Map) => {
+  const handleMapLoad = (map: google.maps.Map) => {
     mapRef.current = map // 지도 객체 저장
+  }
+
+  // 지도 이동 후 실행 (유저가 지도 이동 시)
+  const handleCenterChanged = useCallback(() => {
+    if (mapRef.current) {
+      const newCenter = mapRef.current.getCenter()
+      if (newCenter) {
+        setCenter({lat: newCenter.lat(), lng: newCenter.lng()})
+      }
+    }
+  }, [])
+
+  // 이 처음 실행될 때 현재 위치 가져오기
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const {latitude, longitude} = position.coords
+          setCenter({lat: latitude, lng: longitude}) // 현재 위치로 지도 중심 설정
+        },
+        error => console.error('위치 정보를 가져오는 데 실패했습니다:', error),
+        {enableHighAccuracy: true, timeout: 5000, maximumAge: 10000},
+      )
+    }
   }, [])
 
   return (
