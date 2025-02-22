@@ -1,5 +1,7 @@
-import GoogleMapComponent from '@/app/GoogleMap/ui/GoogleMap'
+import GoogleMapWithDebounce from '@/app/GoogleMap/ui/GoogleMapWithDebounce'
 
 export default function Home() {
-  return <GoogleMapComponent />
+  // return <GoogleMapComponent />
+  // return <GoogleMapWithOnDragEnd />
+  return <GoogleMapWithDebounce />
 }

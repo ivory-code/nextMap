@@ -33,7 +33,7 @@ const GoogleMapWithDebounce = () => {
   // **Debounce 적용된 주소 변환 함수**
   const fetchAddressDebounced = debounce((lat: number, lng: number) => {
     setCenter({lat, lng}) // 지도 중심 좌표 업데이트
-  }, 500) // 500ms 동안 추가 호출이 없을 경우 실행
+  }, 2000) // 500ms 동안 추가 호출이 없을 경우 실행
 
   // **Debounce 적용된 이벤트 핸들러**
   const handleCenterChanged = () => {
