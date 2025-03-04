@@ -88,7 +88,7 @@ const DynamicMap = () => {
         <button className="p-2 bg-gray-200 rounded-full">🔍</button>
         <button
           className="p-2 bg-gray-200 rounded-full"
-          onClick={() => router.push('/upload')}>
+          onClick={() => router.push('/UploadPage')}>
           📷
         </button>
       </div>
