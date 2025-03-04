@@ -1,5 +1,6 @@
 'use client'
 
+import {useRouter} from 'next/navigation'
 import {useEffect, useRef, useState} from 'react'
 
 const DynamicMap = () => {
@@ -10,6 +11,7 @@ const DynamicMap = () => {
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null)
   const [markers, setMarkers] = useState<google.maps.Marker[]>([])
+  const router = useRouter()
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !map) {
@@ -84,6 +86,11 @@ const DynamicMap = () => {
           onChange={e => setSearchQuery(e.target.value)}
         />
         <button className="p-2 bg-gray-200 rounded-full">🔍</button>
+        <button
+          className="p-2 bg-gray-200 rounded-full"
+          onClick={() => router.push('/upload')}>
+          📷
+        </button>
       </div>
 
       {/* 필터 컨테이너 (투명 배경) */}
