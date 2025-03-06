@@ -1,24 +1,90 @@
 'use client'
 
 import {useRouter} from 'next/navigation'
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 
 const UploadPage = () => {
   const router = useRouter()
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [description, setDescription] = useState('')
 
+  useEffect(() => {
+    return () => {
+      if (!selectedImage) {
+        console.log('이미지가 선택되지 않음, uploadLocation 유지')
+      }
+    }
+  }, [selectedImage])
+
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedImage(event.target.files[0])
+      console.log('이미지 선택됨:', event.target.files[0])
     }
+  }
+
+  const handleSubmit = () => {
+    console.log('handleSubmit 호출됨')
+    const locationData = sessionStorage.getItem('uploadLocation')
+    if (!locationData || !selectedImage) {
+      console.log('업로드 위치 또는 이미지가 없습니다.')
+      return
+    }
+
+    const {lat, lng} = JSON.parse(locationData)
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      console.log('FileReader onload 실행됨')
+      if (!reader.result) {
+        console.log('FileReader 결과 없음')
+        return
+      }
+
+      const newMarker = {
+        lat,
+        lng,
+        img: reader.result.toString(),
+        description: description.trim() || '사진 설명 없음',
+      }
+
+      const existingMarkers = JSON.parse(
+        sessionStorage.getItem('photoMarkers') || '[]',
+      )
+      if (!Array.isArray(existingMarkers)) {
+        sessionStorage.setItem('photoMarkers', JSON.stringify([newMarker]))
+      } else {
+        existingMarkers.push(newMarker)
+        sessionStorage.setItem('photoMarkers', JSON.stringify(existingMarkers))
+      }
+
+      sessionStorage.setItem('lastMapCenter', JSON.stringify({lat, lng}))
+      sessionStorage.removeItem('uploadLocation')
+      setSelectedImage(null)
+      console.log('업로드 완료, 홈으로 이동')
+      router.push('/')
+    }
+
+    reader.onerror = () => {
+      console.error('FileReader 오류 발생')
+    }
+
+    setTimeout(() => {
+      console.log('FileReader 실행')
+      reader.readAsDataURL(selectedImage)
+    }, 100)
   }
 
   return (
     <div className="w-full h-screen flex flex-col items-center p-4 bg-gray-100">
       {/* 상단 네비게이션 */}
       <div className="w-full flex items-center justify-start p-4">
-        <button onClick={() => router.back()} className="text-2xl">
+        <button
+          onClick={() => {
+            sessionStorage.removeItem('uploadLocation')
+            router.back()
+          }}
+          className="text-2xl">
           ←
         </button>
       </div>
@@ -67,7 +133,7 @@ const UploadPage = () => {
           사진에 대한 설명을 남겨주세요.
         </label>
         <textarea
-          className="w-full mt-2 p-3 border border-gray-300 rounded-lg bg-white"
+          className="w-full mt-2 p-3 border border-gray-300 rounded-lg bg-white text-gray-700"
           rows={4}
           placeholder="여기에 설명을 입력하세요"
           value={description}
@@ -77,8 +143,13 @@ const UploadPage = () => {
 
       {/* 다음 버튼 */}
       <button
-        className="w-full max-w-md mt-6 bg-gray-300 text-gray-600 p-3 rounded-lg cursor-not-allowed"
-        disabled>
+        className={`w-full max-w-md mt-6 p-3 rounded-lg ${
+          selectedImage
+            ? 'bg-blue-500 text-white cursor-pointer'
+            : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+        }`}
+        onClick={handleSubmit}
+        disabled={!selectedImage}>
         다음
       </button>
     </div>

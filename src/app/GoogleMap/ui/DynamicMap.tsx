@@ -11,6 +11,10 @@ const DynamicMap = () => {
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null)
   const [markers, setMarkers] = useState<google.maps.Marker[]>([])
+  const [currentLocation, setCurrentLocation] = useState<{
+    lat: number
+    lng: number
+  } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -29,8 +33,34 @@ const DynamicMap = () => {
 
       const initializeMap = () => {
         if (!mapRef.current) return
+        const lastMapCenter = JSON.parse(
+          sessionStorage.getItem('lastMapCenter') || 'null',
+        )
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(position => {
+            const userLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            }
+            setCurrentLocation(userLocation)
+            sessionStorage.setItem(
+              'lastMapCenter',
+              JSON.stringify(userLocation),
+            )
+          })
+        } else if (!lastMapCenter) {
+          setCurrentLocation({lat: 37.5825, lng: 127.0015})
+          sessionStorage.setItem(
+            'lastMapCenter',
+            JSON.stringify({lat: 37.5825, lng: 127.0015}),
+          )
+        }
+
+        const defaultCenter = lastMapCenter || {lat: 37.5825, lng: 127.0015}
+
         const mapInstance = new window.google.maps.Map(mapRef.current, {
-          center: {lat: 37.5825, lng: 127.0015},
+          center: defaultCenter,
           zoom: 16,
           disableDefaultUI: true,
           styles: [
@@ -42,6 +72,17 @@ const DynamicMap = () => {
           ],
         })
         setMap(mapInstance)
+
+        mapInstance.addListener('center_changed', () => {
+          const center = mapInstance.getCenter()
+          sessionStorage.setItem(
+            'lastMapCenter',
+            JSON.stringify({
+              lat: center?.lat(),
+              lng: center?.lng(),
+            }),
+          )
+        })
 
         const input = document.getElementById(
           'search-input',
@@ -58,16 +99,33 @@ const DynamicMap = () => {
           const place = autocompleteInstance.getPlace()
           if (place.geometry?.location) {
             mapInstance.setCenter(place.geometry.location)
-            const marker = new window.google.maps.Marker({
-              position: place.geometry.location,
-              map: mapInstance,
-            })
-            setMarkers(prevMarkers => {
-              prevMarkers.forEach(m => m.setMap(null))
-              return [marker]
-            })
+            sessionStorage.setItem(
+              'lastMapCenter',
+              JSON.stringify({
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+              }),
+            )
           }
         })
+
+        // 저장된 마커 불러오기 및 추가
+        const savedMarkers = JSON.parse(
+          sessionStorage.getItem('photoMarkers') || '[]',
+        )
+        savedMarkers.forEach(
+          (markerData: {lat: number; lng: number; img: string}) => {
+            const marker = new window.google.maps.Marker({
+              position: {lat: markerData.lat, lng: markerData.lng},
+              map: mapInstance,
+              icon: {
+                url: markerData.img,
+                scaledSize: new window.google.maps.Size(40, 40),
+              },
+            })
+            setMarkers(prevMarkers => [...prevMarkers, marker])
+          },
+        )
       }
       loadGoogleMaps()
     }
@@ -81,14 +139,26 @@ const DynamicMap = () => {
           id="search-input"
           type="text"
           placeholder="어떤 장소를 찾으시나요?"
-          className="w-full p-2 border-none rounded-lg focus:outline-none"
+          className="w-full p-2 border-none rounded-lg focus:outline-none text-gray-700"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
         <button className="p-2 bg-gray-200 rounded-full">🔍</button>
         <button
           className="p-2 bg-gray-200 rounded-full"
-          onClick={() => router.push('/UploadPage')}>
+          onClick={() => {
+            if (map) {
+              const center = map.getCenter()
+              if (center) {
+                const currentCenter = {lat: center.lat(), lng: center.lng()}
+                sessionStorage.setItem(
+                  'uploadLocation',
+                  JSON.stringify(currentCenter),
+                )
+                router.push('/UploadPage')
+              }
+            }
+          }}>
           📷
         </button>
       </div>
@@ -98,19 +168,24 @@ const DynamicMap = () => {
         <button className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm">
           NEW
         </button>
-        <button className="bg-gray-200 px-4 py-2 rounded-full text-sm">
+        <button className="bg-gray-200 px-4 py-2 rounded-full text-sm text-gray-700">
           인기있는
         </button>
-        <button className="bg-gray-200 px-4 py-2 rounded-full text-sm">
+        <button className="bg-gray-200 px-4 py-2 rounded-full text-sm text-gray-700">
           풍경
         </button>
-        <button className="bg-gray-200 px-4 py-2 rounded-full text-sm">
+        <button className="bg-gray-200 px-4 py-2 rounded-full text-sm text-gray-700">
           프사 느낌
         </button>
-        <button className="bg-gray-200 px-4 py-2 rounded-full text-sm">
-          애완과 함께
+        <button className="bg-gray-200 px-4 py-2 rounded-full text-sm text-gray-700">
+          애완동물과 함께
         </button>
       </div>
+
+      {/* 현재 위치를 나타내는 파란 점 */}
+      {currentLocation && (
+        <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 z-20"></div>
+      )}
 
       {/* Google Maps 컨테이너 */}
       <div ref={mapRef} className="w-full h-full absolute top-0 left-0" />
