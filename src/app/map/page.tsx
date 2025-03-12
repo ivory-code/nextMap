@@ -9,6 +9,7 @@ const MapPage = () => {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [markers, setMarkers] = useState<google.maps.Marker[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -41,6 +42,31 @@ const MapPage = () => {
         })
         setMap(mapInstance)
 
+        // 지도 이동 후 멈춘 위치 저장
+        mapInstance.addListener('idle', () => {
+          const center = mapInstance.getCenter()
+          if (center) {
+            sessionStorage.setItem(
+              'lastMapCenter',
+              JSON.stringify({lat: center.lat(), lng: center.lng()}),
+            )
+          }
+        })
+
+        mapInstance.addListener('click', (event: google.maps.MapMouseEvent) => {
+          if (event.latLng) {
+            const clickedLocation = {
+              lat: event.latLng.lat(),
+              lng: event.latLng.lng(),
+            }
+            sessionStorage.setItem(
+              'uploadLocation',
+              JSON.stringify(clickedLocation),
+            )
+            router.push('/upload')
+          }
+        })
+
         if (searchInputRef.current) {
           const autocomplete = new window.google.maps.places.Autocomplete(
             searchInputRef.current,
@@ -59,6 +85,24 @@ const MapPage = () => {
             }
           })
         }
+
+        // 기존 마커 불러오기 및 추가
+        const savedMarkers = JSON.parse(
+          sessionStorage.getItem('photoMarkers') || '[]',
+        )
+        savedMarkers.forEach(
+          (markerData: {lat: number; lng: number; img: string}) => {
+            const marker = new window.google.maps.Marker({
+              position: {lat: markerData.lat, lng: markerData.lng},
+              map: mapInstance,
+              icon: {
+                url: markerData.img,
+                scaledSize: new window.google.maps.Size(40, 40),
+              },
+            })
+            setMarkers(prevMarkers => [...prevMarkers, marker])
+          },
+        )
       }
 
       loadGoogleMaps()
@@ -88,10 +132,7 @@ const MapPage = () => {
                 'uploadLocation',
                 JSON.stringify(lastMapCenter),
               )
-              console.log('📍 업로드 위치 저장됨:', lastMapCenter) // 디버깅 로그 추가
               router.push('/upload')
-            } else {
-              console.error('❌ 현재 위치를 가져올 수 없습니다.') // 에러 로그 추가
             }
           }}>
           📷
