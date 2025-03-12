@@ -88,7 +88,10 @@ const MapPage = () => {
                 'uploadLocation',
                 JSON.stringify(lastMapCenter),
               )
+              console.log('📍 업로드 위치 저장됨:', lastMapCenter) // 디버깅 로그 추가
               router.push('/upload')
+            } else {
+              console.error('❌ 현재 위치를 가져올 수 없습니다.') // 에러 로그 추가
             }
           }}>
           📷

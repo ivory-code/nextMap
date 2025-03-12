@@ -7,14 +7,28 @@ const UploadPage = () => {
   const router = useRouter()
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [description, setDescription] = useState('')
+  const [uploadLocation, setUploadLocation] = useState<{
+    lat: number
+    lng: number
+  } | null>(null)
 
+  // 📍 페이지 로드 시 `uploadLocation` 가져오기
   useEffect(() => {
+    const locationData = sessionStorage.getItem('uploadLocation')
+    if (locationData) {
+      setUploadLocation(JSON.parse(locationData))
+      console.log(
+        '✅ UploadPage에서 업로드 위치 확인됨:',
+        JSON.parse(locationData),
+      )
+    }
+
     return () => {
       if (!selectedImage) {
         sessionStorage.removeItem('uploadLocation')
       }
     }
-  }, [selectedImage])
+  }, [])
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -23,17 +37,29 @@ const UploadPage = () => {
   }
 
   const handleSubmit = async () => {
-    const locationData = sessionStorage.getItem('uploadLocation')
-    if (!locationData || !selectedImage) return
+    if (!uploadLocation) {
+      console.error('❌ 업로드 위치가 없습니다!')
+      return
+    }
 
-    const {lat, lng} = JSON.parse(locationData)
+    if (!selectedImage) {
+      console.error('❌ 이미지를 선택해야 합니다!')
+      return
+    }
+
+    console.log('✅ 업로드 위치 확인됨:', uploadLocation)
+    console.log('✅ 선택된 이미지 확인됨:', selectedImage)
+
     const reader = new FileReader()
-
     reader.onload = async () => {
-      if (!reader.result) return
+      if (!reader.result) {
+        console.error('❌ FileReader 결과 없음!')
+        return
+      }
+
       const newMarker = {
-        lat,
-        lng,
+        lat: uploadLocation.lat,
+        lng: uploadLocation.lng,
         img: reader.result.toString(),
         description: description.trim() || '사진 설명 없음',
       }
@@ -41,15 +67,14 @@ const UploadPage = () => {
       const existingMarkers = JSON.parse(
         sessionStorage.getItem('photoMarkers') || '[]',
       )
-      if (!Array.isArray(existingMarkers)) {
-        sessionStorage.setItem('photoMarkers', JSON.stringify([newMarker]))
-      } else {
-        existingMarkers.push(newMarker)
-        sessionStorage.setItem('photoMarkers', JSON.stringify(existingMarkers))
-      }
+      const updatedMarkers = Array.isArray(existingMarkers)
+        ? [...existingMarkers, newMarker]
+        : [newMarker]
 
-      sessionStorage.setItem('lastMapCenter', JSON.stringify({lat, lng}))
+      sessionStorage.setItem('photoMarkers', JSON.stringify(updatedMarkers))
+      sessionStorage.setItem('lastMapCenter', JSON.stringify(uploadLocation))
       sessionStorage.removeItem('uploadLocation')
+
       setSelectedImage(null)
       router.push('/map')
     }
